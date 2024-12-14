@@ -1,49 +1,63 @@
 import streamlit as st
+
 class Bank:
-    Balance=0
+    def __init__(self):
+        # Initialize session state variables
+        if "balance" not in st.session_state:
+            st.session_state.balance = 0
+        if "verified" not in st.session_state:
+            st.session_state.verified = False
+        if "operation" not in st.session_state:
+            st.session_state.operation = None
+
     def deposit(self):
-        dep=st.number_input("Enter the amount to be deposited", min_value=0, max_value=10000, step=1)
+        dep = st.number_input("Enter the amount to be deposited", min_value=0, max_value=10000, step=1, key="deposit_input")
         if st.button("Deposit"):
             if dep > 10000:
-                st.warning("deposit amount is greater than 10000")
-            if dep < 100:
-                st.warning("deposit amount is lesser than 100")
-            if(dep%100)!=0:
-                st.warning("the amount is not divisible by 100")
+                st.warning("Deposit amount is greater than 10000")
+            elif dep < 100:
+                st.warning("Deposit amount is less than 100")
+            elif dep % 100 != 0:
+                st.warning("The amount is not divisible by 100")
             else:
-                self.Balance += dep
-                st.success(f"Deposit successful! Your balance is now {self.Balance}")
-    # def withdraw(self):
-    #     wd= st.number_input("Enter the amount to be withdrawn", min_value=0.00, max_value=10000, step=0.01)
+                st.session_state.balance += dep
+                st.success(f"Deposit successful! Your balance is now {st.session_state.balance}")
+
     def withdraw(self):
-        wd=st.number_input("Enter the amount to be withdrawn", min_value=0, max_value=self.Balance, step=1)
+        wd = st.number_input("Enter the amount to be withdrawn", min_value=0, max_value=st.session_state.balance, step=1, key="withdraw_input")
         if st.button("Withdraw"):
-            if wd > self.Balance:
-                st.warning(f"withdraw amount is greater than the balance: {self.Balance}")
-            if (wd % 100) != 0:
-                st.warning("the amount is not divisible by 100")
+            if wd > st.session_state.balance:
+                st.warning(f"Withdraw amount is greater than the balance: {st.session_state.balance}")
+            elif wd % 100 != 0:
+                st.warning("The amount is not divisible by 100")
             else:
-                self.Balance -= wd
-                st.success(f"Deposit successful! Your balance is now {self.Balance}")
+                st.session_state.balance -= wd
+                st.success(f"Withdrawal successful! Your balance is now {st.session_state.balance}")
+
     def verify(self):
-        pin=st.number_input("Enter the pin",min_value=1000)
-        if st.button("verify"):
+        pin = st.number_input("Enter the PIN", min_value=1000, step=1, key="pin_input")
+        if st.button("Verify"):
             if pin == 1234:
-                self.options()
+                st.session_state.verified = True
+                st.success("PIN verified successfully!")
             else:
-                st.warning("Entered pin is incorrect")
-                # st.rerun
+                st.warning("Entered PIN is incorrect")
 
     def options(self):
-        op=st.number_input("Enter your option choice", min_value=0, max_value=3, step=1)
-        if st.button("check operation"):
-            # match op:
-            #     case 1: st.success("asd")
-            #             self.deposit()
-            #     case 2: self.withdraw()
-            if op==1:
-                dep = st.number_input("Enter the amount to be deposited", min_value=0, max_value=10000, step=1)
-            if op==2:
-                obj.withdraw()
-obj=Bank()
-obj.verify()
+        if not st.session_state.verified:
+            self.verify()
+            return
+
+        st.write("Select an operation:")
+        op = st.radio("Choose an option", options=["Deposit", "Withdraw", "Exit"], key="operation_choice")
+
+        if op == "Deposit":
+            self.deposit()
+        elif op == "Withdraw":
+            self.withdraw()
+        elif op == "Exit":
+            st.write("Thank you for using the bank system!")
+
+# Create the Bank object
+obj = Bank()
+obj.options()
